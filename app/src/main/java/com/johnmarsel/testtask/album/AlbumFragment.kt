@@ -1,25 +1,20 @@
-package com.johnmarsel.testtask
+package com.johnmarsel.testtask.album
 
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
+import com.johnmarsel.testtask.R
 import com.johnmarsel.testtask.api.Album
 import com.johnmarsel.testtask.databinding.FragmentAlbumBinding
 import com.johnmarsel.testtask.databinding.ListItemAlbumsBinding
-import kotlinx.coroutines.flow.callbackFlow
-import java.text.DateFormat
 
 private const val TAG = "AlbumFragment"
 
@@ -45,7 +40,7 @@ class AlbumFragment: Fragment() {
 
         albumListViewModel =
             ViewModelProvider(this).get(AlbumListViewModel::class.java)
-        albumListViewModel.fetchAlbums("Metallica")
+        albumListViewModel.searchAlbums("Metallica")
     }
 
     override fun onCreateView(
@@ -80,7 +75,7 @@ class AlbumFragment: Fragment() {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(queryText: String): Boolean {
                     Log.d(TAG, "QueryTextSubmit: $queryText")
-                    albumListViewModel.fetchAlbums(queryText)
+                    albumListViewModel.searchAlbums(queryText)
                     val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE)
                             as InputMethodManager
                     imm.hideSoftInputFromWindow(view?.windowToken, 0)
@@ -145,4 +140,10 @@ class AlbumFragment: Fragment() {
                 holder.bind(album)
             }
         }
+
+    companion object {
+        fun newInstance(): AlbumFragment {
+            return AlbumFragment()
+        }
+    }
 }

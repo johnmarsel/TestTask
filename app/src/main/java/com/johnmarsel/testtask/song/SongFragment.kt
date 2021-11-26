@@ -1,4 +1,4 @@
-package com.johnmarsel.testtask
+package com.johnmarsel.testtask.song
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,29 +8,25 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.johnmarsel.testtask.api.Album
+import com.johnmarsel.testtask.album.AlbumListViewModel
 import com.johnmarsel.testtask.api.Song
-import com.johnmarsel.testtask.databinding.FragmentAlbumBinding
 import com.johnmarsel.testtask.databinding.FragmentSongBinding
-import com.johnmarsel.testtask.databinding.ListItemAlbumsBinding
 import com.johnmarsel.testtask.databinding.ListItemSongsBinding
-import java.util.*
 
 const val ALBUM_ID = "album_id"
 
 class SongFragment : Fragment() {
 
-    lateinit var albumListViewModel: AlbumListViewModel
+    lateinit var songListViewModel: SongListViewModel
     lateinit var songRecyclerView: RecyclerView
     private lateinit var binding: FragmentSongBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        albumListViewModel =
-            ViewModelProvider(this).get(AlbumListViewModel::class.java)
-        albumListViewModel.getSongs(arguments?.getSerializable(ALBUM_ID) as Int)
+        songListViewModel =
+            ViewModelProvider(this).get(SongListViewModel::class.java)
+        songListViewModel.fetchSongs(arguments?.getSerializable(ALBUM_ID) as Int)
     }
 
     override fun onCreateView(
@@ -46,7 +42,7 @@ class SongFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        albumListViewModel.songsList.observe(
+        songListViewModel.songsList.observe(
             viewLifecycleOwner,
             { songList ->
                 songRecyclerView.adapter = AlbumAdapter(songList)

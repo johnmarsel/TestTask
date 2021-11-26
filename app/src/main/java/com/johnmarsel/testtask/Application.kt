@@ -7,5 +7,6 @@ class TestTask : Application() {
     override fun onCreate() {
         super.onCreate()
         ItunesApi.create()
+        ItunesRepository.initialize()
     }
 }

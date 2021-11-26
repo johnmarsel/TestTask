@@ -1,9 +1,8 @@
-package com.johnmarsel.testtask
+package com.johnmarsel.testtask.api
 
 import com.google.gson.annotations.SerializedName
-import com.johnmarsel.testtask.api.Song
 
-class ItunesResponseSongs {
+class ItunesSongResponse {
     @SerializedName("results")
     lateinit var songs: List<Song>
 }

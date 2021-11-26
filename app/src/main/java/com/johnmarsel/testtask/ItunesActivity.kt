@@ -2,8 +2,10 @@ package com.johnmarsel.testtask
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.johnmarsel.testtask.album.AlbumFragment
+import com.johnmarsel.testtask.song.SongFragment
 
-class MainActivity : AppCompatActivity(), AlbumFragment.Callbacks {
+class ItunesActivity : AppCompatActivity(), AlbumFragment.Callbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -12,7 +14,7 @@ class MainActivity : AppCompatActivity(), AlbumFragment.Callbacks {
         if (isFragmentContainerEmpty) {
             supportFragmentManager
                 .beginTransaction()
-                .add(R.id.fragmentContainer, AlbumFragment())
+                .add(R.id.fragmentContainer, AlbumFragment.newInstance())
                 .commit()
         }
     }
