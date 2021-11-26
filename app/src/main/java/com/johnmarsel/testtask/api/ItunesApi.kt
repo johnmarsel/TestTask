@@ -1,5 +1,6 @@
 package com.johnmarsel.testtask.api
 
+import com.johnmarsel.testtask.ItunesResponseSongs
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -12,6 +13,11 @@ interface ItunesApi {
     @GET("search?" +
                 "&entity=album")
     suspend fun fetchAlbums(@Query("term") term: String): Response<ItunesResponse>
+
+    @GET("lookup?" +
+            "&entity=song")
+    suspend fun fetchSongs(@Query("id") collectionId: Int): Response<ItunesResponseSongs>
+
 
     companion object {
 
