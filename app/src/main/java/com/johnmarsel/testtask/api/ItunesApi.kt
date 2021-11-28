@@ -1,8 +1,6 @@
 package com.johnmarsel.testtask.api
 
 import com.johnmarsel.testtask.model.ItunesResponse
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -30,11 +28,6 @@ interface ItunesApi {
             if (INSTANCE == null) {
                 INSTANCE = Retrofit.Builder()
                     .baseUrl(BASE_URL)
-                    .client(OkHttpClient.Builder().also { client ->
-                        val logging = HttpLoggingInterceptor()
-                        logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-                        client.addInterceptor(logging)
-                    }.build())
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
                     .create(ItunesApi::class.java)

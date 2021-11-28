@@ -1,20 +1,40 @@
 package com.johnmarsel.testtask
 
+import android.content.Context
+import androidx.room.Room
 import com.johnmarsel.testtask.api.ItunesApi
+import com.johnmarsel.testtask.database.ItunesDataBase
+import com.johnmarsel.testtask.model.ItunesItem
 
-class ItunesRepository {
+private const val DATABASE_NAME = "itunes-database"
 
+class ItunesRepository private constructor(context: Context) {
+
+    private val database : ItunesDataBase = Room.databaseBuilder(
+        context.applicationContext,
+        ItunesDataBase::class.java,
+        DATABASE_NAME
+    ).build()
+
+    private val crimeDao = database.itunesDao()
     private val itunesApi = ItunesApi.get()
 
-    suspend fun searchAlbums(term: String) = itunesApi.searchAlbums(term)
-    suspend fun fetchSongs(collectionId: Int) = itunesApi.fetchSongs(collectionId)
+    fun fetchLocalItems(): List<ItunesItem> {
+        return crimeDao.getItunesItems()
+    }
+
+    fun insertLocalItems(items: List<ItunesItem>) = crimeDao.insertItunesItems(items)
+    fun deleteLocalItems() = crimeDao.deleteItunesItems()
+
+    suspend fun searchItems(term: String) = itunesApi.searchAlbums(term)
+    suspend fun fetchItems(collectionId: Int) = itunesApi.fetchSongs(collectionId)
 
     companion object {
         private var INSTANCE: ItunesRepository? = null
 
-        fun initialize() {
+        fun initialize(context: Context) {
             if (INSTANCE == null) {
-                INSTANCE = ItunesRepository()
+                INSTANCE = ItunesRepository(context)
             }
         }
 

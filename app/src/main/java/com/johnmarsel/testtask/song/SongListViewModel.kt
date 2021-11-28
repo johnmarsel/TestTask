@@ -17,7 +17,7 @@ class SongListViewModel: ViewModel() {
             liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
                 emit(Resource.loading(data = null))
                 try {
-                    val result = itunesRepository.fetchSongs(collectionId)
+                    val result = itunesRepository.fetchItems(collectionId)
                     emit(Resource.success(data = result.body()!!.items))
                 } catch (exception: Exception) {
                     emit(

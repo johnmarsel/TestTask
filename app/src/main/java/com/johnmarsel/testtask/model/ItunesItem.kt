@@ -1,14 +1,17 @@
 package com.johnmarsel.testtask.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.*
 
-data class ItunesItem (var artistName: String = "",
-                       var collectionName: String = "",
-                       var releaseDate: Date = Date(),
-                       var artworkUrl100: String = "",
-                       var collectionType: String = "",
-                       var collectionId: Int = 1,
-                       var trackCount: Int = 1,
-                       var trackName: String = "",
-                       var trackTimeMillis: Long = 1
+@Entity
+data class ItunesItem (@PrimaryKey val collectionId: Int = 1,
+                       val artistName: String = "",
+                       val collectionName: String = "",
+                       val releaseDate: Date = Date(),
+                       val artworkUrl100: String = "",
+                       val collectionType: String = "",
+                       val trackCount: Int = 1,
+                       val trackName: String = "",
+                       val trackTimeMillis: Long = 1
 )
