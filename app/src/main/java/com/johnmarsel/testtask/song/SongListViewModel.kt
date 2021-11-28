@@ -2,25 +2,25 @@ package com.johnmarsel.testtask.song
 
 import androidx.lifecycle.*
 import com.johnmarsel.testtask.ItunesRepository
-import com.johnmarsel.testtask.api.Song
+import com.johnmarsel.testtask.model.ItunesItem
 import kotlinx.coroutines.Dispatchers
 
 class SongListViewModel: ViewModel() {
 
-    private var itunesRepository = ItunesRepository.get()
-    var songsList: LiveData<List<Song>>
-    private val collectionIdLiveData = MutableLiveData<Int>()
+    private val itunesRepository = ItunesRepository.get()
+    val songsList: LiveData<List<ItunesItem>>
+    private val mutableCollectionId = MutableLiveData<Int>()
 
     init {
-        songsList = collectionIdLiveData.switchMap { collectionId ->
+        songsList = mutableCollectionId.switchMap { collectionId ->
             liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
                 val result = itunesRepository.fetchSongs(collectionId)
-                result.body()?.let { emit(it.songs) }
+                result.body()?.let { emit(it.items) }
             }
         }
     }
 
     fun fetchSongs(collectionId: Int) {
-        collectionIdLiveData.value = collectionId
+        mutableCollectionId.value = collectionId
     }
 }

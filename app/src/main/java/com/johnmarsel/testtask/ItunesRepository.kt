@@ -4,11 +4,10 @@ import com.johnmarsel.testtask.api.ItunesApi
 
 class ItunesRepository {
 
-    private var itunesApi = ItunesApi.get()
+    private val itunesApi = ItunesApi.get()
 
     suspend fun searchAlbums(term: String) = itunesApi.searchAlbums(term)
     suspend fun fetchSongs(collectionId: Int) = itunesApi.fetchSongs(collectionId)
-
 
     companion object {
         private var INSTANCE: ItunesRepository? = null

@@ -10,24 +10,22 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.johnmarsel.testtask.R
-import com.johnmarsel.testtask.api.Album
+import com.johnmarsel.testtask.model.ItunesItem
 import com.johnmarsel.testtask.databinding.FragmentAlbumBinding
 import com.johnmarsel.testtask.databinding.ListItemAlbumsBinding
+import com.johnmarsel.testtask.loadImage
 
 private const val TAG = "AlbumFragment"
 
 class AlbumFragment: Fragment() {
 
     interface Callbacks {
-        fun onAlbumSelected(collectionId: Int)
+        fun onAlbumSelected(collectionId: Int, collectionViewUrl: String)
     }
 
     private var callbacks: Callbacks? = null
-    lateinit var binding: FragmentAlbumBinding
-    lateinit var albumListViewModel: AlbumListViewModel
-    lateinit var albumRecyclerView: RecyclerView
+    private lateinit var binding: FragmentAlbumBinding
+    private lateinit var albumListViewModel: AlbumListViewModel
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -36,8 +34,6 @@ class AlbumFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-
         albumListViewModel =
             ViewModelProvider(this).get(AlbumListViewModel::class.java)
         albumListViewModel.searchAlbums("Metallica")
@@ -49,36 +45,35 @@ class AlbumFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentAlbumBinding.inflate(inflater, container, false)
-        albumRecyclerView = binding.albumRecyclerView
-
-        albumRecyclerView.layoutManager = LinearLayoutManager(context)
+        binding.albumRecyclerView.layoutManager = LinearLayoutManager(context)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        albumListViewModel.albumsList.observe(
+        albumListViewModel.albumList.observe(
             viewLifecycleOwner,
             { albumList ->
-                albumRecyclerView.adapter = AlbumAdapter(albumList)
+                (albumList as MutableList).sortWith { a, b ->
+                    String.CASE_INSENSITIVE_ORDER.compare(
+                        a.collectionName,
+                        b.collectionName
+                    )
+                }
+                binding.apply {
+                    albumRecyclerView.adapter = AlbumAdapter(albumList)
+                    queryText.text = searchView.query
+                }
             })
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.fragment_album, menu)
-
-        val searchItem: MenuItem = menu.findItem(R.id.menu_item_search)
-        val searchView = searchItem.actionView as SearchView
-
-        searchView.apply {
+        binding.searchView.apply {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(queryText: String): Boolean {
                     Log.d(TAG, "QueryTextSubmit: $queryText")
                     albumListViewModel.searchAlbums(queryText)
                     val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE)
                             as InputMethodManager
-                    imm.hideSoftInputFromWindow(view?.windowToken, 0)
+                    imm.hideSoftInputFromWindow(view.windowToken, 0)
                     return true
                 }
 
@@ -89,37 +84,32 @@ class AlbumFragment: Fragment() {
             })
         }
     }
-
         private inner class AlbumHolder(val binding: ListItemAlbumsBinding) :
             RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
-            private lateinit var album: Album
+            private lateinit var album: ItunesItem
             init {
                 binding.root.setOnClickListener(this)
             }
 
-            fun bind(album: Album) {
+            fun bind(album: ItunesItem) {
                 this.album = album
                 binding.apply {
-                    textViewAlbumName.text = album.collectionName
-                    textViewSongName.text = android.text.format.DateFormat.format(
+                    albumImage.loadImage(album.artworkUrl100)
+                    albumName.text = album.collectionName
+                    releaseDate.text = android.text.format.DateFormat.format(
                         "yyyy",
                         album.releaseDate
                     ).toString()
-                    Glide.with(binding.albumImageView.context)
-                        .load(album.artworkUrl60)
-                        .into(binding.albumImageView)
-
-
+                    artistName.text = album.artistName
                 }
             }
-
             override fun onClick(v: View?) {
-                callbacks?.onAlbumSelected(album.collectionId)
+                callbacks?.onAlbumSelected(album.collectionId, album.artworkUrl100)
             }
         }
 
-        private inner class AlbumAdapter(private val albumList: List<Album>) :
+        private inner class AlbumAdapter(private val albumList: List<ItunesItem>) :
             RecyclerView.Adapter<AlbumHolder>() {
 
             override fun onCreateViewHolder(

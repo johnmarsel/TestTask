@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TestTask</string>
+    <string name="search_label">Поиск</string>
+    <string name="album_info">%1$d Треков %2$d час %3$d минут</string>
+    <string name="album_info_without_hours">%1$d Треков %2$d минут</string>
+    <string name="query_hint">Исполнитель или альбом</string>
+</resources>
