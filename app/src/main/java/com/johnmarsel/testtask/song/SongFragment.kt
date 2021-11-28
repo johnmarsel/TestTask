@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -13,6 +14,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.johnmarsel.testtask.R
+import com.johnmarsel.testtask.Status
 import com.johnmarsel.testtask.model.ItunesItem
 import com.johnmarsel.testtask.databinding.FragmentSongBinding
 import com.johnmarsel.testtask.databinding.ListItemSongsBinding
@@ -60,10 +62,30 @@ class SongFragment : Fragment() {
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
         binding.toolbar.title = ""
 
-        songListViewModel.songsList.observe(
-            viewLifecycleOwner,
-            { songList ->
-                updateUI(songList)
+        setupObservers()
+    }
+
+    private fun setupObservers() {
+        songListViewModel.songsList.observe(viewLifecycleOwner,
+            { resource ->
+                resource?.let {
+                    when (it.status) {
+                        Status.SUCCESS -> {
+                            binding.songRecyclerView.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.GONE
+                            resource.data?.let { songsList -> updateUI(songsList) }
+                        }
+                        Status.ERROR -> {
+                            binding.songRecyclerView.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.GONE
+                            Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+                        }
+                        Status.LOADING -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                            binding.songRecyclerView.visibility = View.GONE
+                        }
+                    }
+                }
             })
     }
 

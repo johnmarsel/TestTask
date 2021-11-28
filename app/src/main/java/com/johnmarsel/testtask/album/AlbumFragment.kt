@@ -2,14 +2,17 @@ package com.johnmarsel.testtask.album
 
 import android.content.Context
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.johnmarsel.testtask.Status
 import com.johnmarsel.testtask.model.ItunesItem
 import com.johnmarsel.testtask.databinding.FragmentAlbumBinding
 import com.johnmarsel.testtask.databinding.ListItemAlbumsBinding
@@ -36,7 +39,6 @@ class AlbumFragment: Fragment() {
         super.onCreate(savedInstanceState)
         albumListViewModel =
             ViewModelProvider(this).get(AlbumListViewModel::class.java)
-        albumListViewModel.searchAlbums("Metallica")
     }
 
     override fun onCreateView(
@@ -51,26 +53,14 @@ class AlbumFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        albumListViewModel.albumList.observe(
-            viewLifecycleOwner,
-            { albumList ->
-                (albumList as MutableList).sortWith { a, b ->
-                    String.CASE_INSENSITIVE_ORDER.compare(
-                        a.collectionName,
-                        b.collectionName
-                    )
-                }
-                binding.apply {
-                    albumRecyclerView.adapter = AlbumAdapter(albumList)
-                    queryText.text = searchView.query
-                }
-            })
-
+        setUpObservers()
         binding.searchView.apply {
+            setIconifiedByDefault(false)
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(queryText: String): Boolean {
                     Log.d(TAG, "QueryTextSubmit: $queryText")
                     albumListViewModel.searchAlbums(queryText)
+                    binding.queryText.text = queryText
                     val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE)
                             as InputMethodManager
                     imm.hideSoftInputFromWindow(view.windowToken, 0)
@@ -84,56 +74,88 @@ class AlbumFragment: Fragment() {
             })
         }
     }
-        private inner class AlbumHolder(val binding: ListItemAlbumsBinding) :
-            RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
-            private lateinit var album: ItunesItem
-            init {
-                binding.root.setOnClickListener(this)
-            }
-
-            fun bind(album: ItunesItem) {
-                this.album = album
-                binding.apply {
-                    albumImage.loadImage(album.artworkUrl100)
-                    albumName.text = album.collectionName
-                    releaseDate.text = android.text.format.DateFormat.format(
-                        "yyyy",
-                        album.releaseDate
-                    ).toString()
-                    artistName.text = album.artistName
+    private fun setUpObservers() {
+        albumListViewModel.albumList.observe(viewLifecycleOwner,
+            { resource ->
+                resource?.let {
+                when (it.status) {
+                    Status.SUCCESS -> {
+                        binding.albumRecyclerView.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.GONE
+                        resource.data?.let { albumList -> setupAdapter(albumList) }
+                    }
+                    Status.ERROR -> {
+                        binding.albumRecyclerView.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+                    }
+                    Status.LOADING -> {
+                        binding.progressBar.visibility = View.VISIBLE
+                        binding.albumRecyclerView.visibility = View.GONE
+                    }
                 }
             }
-            override fun onClick(v: View?) {
-                callbacks?.onAlbumSelected(album.collectionId, album.artworkUrl100)
+        })
+    }
+
+    private fun setupAdapter(albumList: List<ItunesItem>) {
+        (albumList as MutableList).sortWith { a, b ->
+            String.CASE_INSENSITIVE_ORDER.compare(
+                a.collectionName,
+                b.collectionName
+            )
+        }
+        binding.albumRecyclerView.adapter = AlbumAdapter(albumList)
+    }
+
+    private inner class AlbumHolder(val binding: ListItemAlbumsBinding) :
+        RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+
+        private lateinit var album: ItunesItem
+
+        init {
+            binding.root.setOnClickListener(this)
+        }
+
+        fun bind(album: ItunesItem) {
+            this.album = album
+            binding.apply {
+                albumImage.loadImage(album.artworkUrl100)
+                albumName.text = album.collectionName
+                releaseDate.text = DateFormat.format(
+                    "yyyy",
+                    album.releaseDate
+                ).toString()
+                artistName.text = album.artistName
             }
         }
 
-        private inner class AlbumAdapter(private val albumList: List<ItunesItem>) :
-            RecyclerView.Adapter<AlbumHolder>() {
-
-            override fun onCreateViewHolder(
-                parent: ViewGroup,
-                viewType: Int
-            ): AlbumHolder {
-                val binding = ListItemAlbumsBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent, false
-                )
-                return AlbumHolder(binding)
-            }
-
-            override fun getItemCount(): Int = albumList.size
-
-            override fun onBindViewHolder(holder: AlbumHolder, position: Int) {
-                val album = albumList[position]
-                holder.bind(album)
-            }
+        override fun onClick(v: View?) {
+            callbacks?.onAlbumSelected(album.collectionId, album.artworkUrl100)
         }
 
-    companion object {
-        fun newInstance(): AlbumFragment {
-            return AlbumFragment()
+    }
+
+    private inner class AlbumAdapter(private val albumList: List<ItunesItem>) :
+        RecyclerView.Adapter<AlbumHolder>() {
+
+        override fun onCreateViewHolder(
+            parent: ViewGroup,
+            viewType: Int
+        ): AlbumHolder {
+            val binding = ListItemAlbumsBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent, false
+            )
+            return AlbumHolder(binding)
+        }
+
+        override fun getItemCount(): Int = albumList.size
+
+        override fun onBindViewHolder(holder: AlbumHolder, position: Int) {
+            val album = albumList[position]
+            holder.bind(album)
         }
     }
 }
